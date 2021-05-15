@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import {BrowserRouter} from 'react-router-dom';
+import {BrowserRouter as Router} from 'react-router-dom'
+import {Route} from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
 import reducer from "./reducer";
 import {tokenMiddleware} from "./middleware";
@@ -12,7 +13,7 @@ import {
     applyMiddleware,
     createStore
 } from "redux";
-import createHistory from 'history/createVrowserHistory'
+// import createHistory from 'history/createVrowserHistory'
 
 
 // Css
@@ -31,16 +32,17 @@ import './assets/vendors/iconic-fonts/cryptocoins/cryptocoins-colors.css';
 import './assets/vendors/iconic-fonts/font-awesome/css/all.min.css';
 import './assets/css/style.css';
 
-const store = createStore(state => state)
 
-const history = createHistory();
+const store = createStore(reducer, composeWithDevTools(
+    applyMiddleware(thunkMiddleware, tokenMiddleware),
+));
+
+// const history = createHistory();
 
 ReactDOM.render(
-  <BrowserRouter>
       <Provider store={store}>
           <App />
-      </Provider>
-  </BrowserRouter>,
+      </Provider>,
   document.getElementById('mystic')
 );
 
