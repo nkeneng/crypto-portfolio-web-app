@@ -1,5 +1,10 @@
-import React, { Component, Fragment } from 'react';
-import { Line as LineChart } from 'react-chartjs-2';
+import React, {Component, Fragment} from 'react';
+import {Line as LineChart} from 'react-chartjs-2';
+import {Link} from "react-router-dom";
+import {connect} from "react-redux";
+import {assetsListFetch, userProfileFetch} from "../../../reducers/actions";
+import CoinGecko from "coingecko-api";
+import {formatter} from "../../Utility/functions";
 
 // Bitcoin
 function Bitcoin() {
@@ -23,10 +28,11 @@ function Bitcoin() {
         }]
     }
 }
+
 // Ethereum
 function Ethereum() {
     return {
-        labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         datasets: [{
             label: "Data",
             borderColor: '#4e8ee8',
@@ -41,14 +47,15 @@ function Ethereum() {
             fill: true,
             backgroundColor: "rgba(78, 142, 232,0.2)",
             borderWidth: 2,
-            data: [4,5,3,7,5,7,8,9,7,6,7,7,6,5,3]
+            data: [4, 5, 3, 7, 5, 7, 8, 9, 7, 6, 7, 7, 6, 5, 3]
         }]
     }
 }
+
 // ZCash
 function ZCash() {
     return {
-        labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         datasets: [{
             label: "Data",
             borderColor: '#e5a93d',
@@ -63,14 +70,15 @@ function ZCash() {
             fill: true,
             backgroundColor: "rgba(229, 169, 61,0.2)",
             borderWidth: 2,
-            data: [5,6,8,1,5,3,9,7,5,8,7,3,6,9,1]
+            data: [5, 6, 8, 1, 5, 3, 9, 7, 5, 8, 7, 3, 6, 9, 1]
         }]
     }
 }
+
 // Peercoin
 function Peercoin() {
     return {
-        labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         datasets: [{
             label: "Data",
             borderColor: '#3FA30C',
@@ -85,10 +93,11 @@ function Peercoin() {
             fill: true,
             backgroundColor: "rgba(63, 163, 12,0.2)",
             borderWidth: 2,
-            data: [1,4,7,3,5,7,6,5,8,3,5,5,4,3,7]
+            data: [1, 4, 7, 3, 5, 7, 6, 5, 8, 3, 5, 5, 4, 3, 7]
         }]
     }
 }
+
 // Options
 const options = {
     elements: {
@@ -109,71 +118,83 @@ const options = {
         }]
     }
 }
+
+
+const mapStateToProps = state => ({
+    ...state.auth, ...state.assets
+});
+
+const mapDispatchToProps = {
+    userProfileFetch, assetsListFetch
+};
+
+
 class Infographics extends Component {
+
     constructor(props, context) {
         super(props, context)
+        console.log(props);
         this.state = {
-            data1: Bitcoin(),
-            data2: Ethereum(),
-            data3: ZCash(),
-            data4: Peercoin(),
+            data: [
+                Bitcoin(),
+                Ethereum(),
+                ZCash(),
+                Peercoin(),
+            ],
             open: true,
         }
     };
+
+
+
     render() {
         return (
-            <Fragment>
-                <div className="col-xl-3 col-sm-6 col-md-6">
-                    <div className="ms-card ms-widget has-graph-full-width ms-infographics-widget">
-                        <div className="ms-card-body media">
-                            <i className="cc BTC" />
-                            <div className="media-body">
-                                <span>1 BTC = $4,500</span>
-                                <h2>Binance</h2>
+            this.props.type === 'home' ?
+                <Fragment>
+                    {this.props.accounts !== undefined && this.props.accounts !== null ? this.props.accounts.slice(0, 4).map((item,key) => (
+                            <div key={key} className={"col-xl-" + 12 / this.props.accounts.slice(0, 4).length + " col-sm-6 col-md-6"}>
+                                <Link to={'/account/' + item.name}>
+                                    <div className="ms-card ms-widget has-graph-full-width ms-infographics-widget">
+                                        <div className="ms-card-body media">
+                                            <img alt="" style={imgStyle} width="32" height="32"
+                                                 src={item.image}/>
+                                            <div className="media-body">
+                                                <span>{formatter.format(item.totalAmount)}</span>
+                                                <h2>{item.name}</h2>
+                                            </div>
+                                        </div>
+                                        <LineChart data={this.state.data[key]} options={options}/>
+                                    </div>
+                                </Link>
                             </div>
-                        </div>
-                        <LineChart data={this.state.data1} options={options} />
-                    </div>
-                </div>
-                <div className="col-xl-3 col-sm-6 col-md-6">
-                    <div className="ms-card ms-widget has-graph-full-width ms-infographics-widget">
-                        <div className="ms-card-body media">
-                            <i className="cc ETH" />
-                            <div className="media-body">
-                                <span>1 ETH = $500</span>
-                                <h2>Swissborg</h2>
+                        )
+                    ) : null}
+                </Fragment> : <Fragment>
+                    {this.props.specificAssets !== undefined && this.props.specificAssets !== null ? this.props.specificAssets.slice(0, 4).map((item, key) => (
+                            <div key={key} className={"col-xl-" + 12 / this.props.specificAssets.slice(0, 4).length + " col-sm-6 col-md-6"}>
+                                <div className="ms-card ms-widget has-graph-full-width ms-infographics-widget">
+                                    <div className="ms-card-body media">
+                                        <img alt="" style={imgStyle} width="32" height="32"
+                                             src={item.image}/>
+                                        <div className="media-body">
+                                            <span>1 {item.symbol} = {formatter.format(item.usdPrice)}</span>
+                                            <h2>{item.name}</h2>
+                                        </div>
+                                    </div>
+                                    <LineChart data={this.state.data[key]} options={options}/>
+                                </div>
                             </div>
-                        </div>
-                        <LineChart data={this.state.data2} options={options} />
-                    </div>
-                </div>
-                <div className="col-xl-3 col-sm-6 col-md-6">
-                    <div className="ms-card ms-widget has-graph-full-width ms-infographics-widget">
-                        <div className="ms-card-body media">
-                            <i className="cc ZEC-alt" />
-                            <div className="media-body">
-                                <span>1 ZEC = $1,500</span>
-                                <h2>Kucoin</h2>
-                            </div>
-                        </div>
-                        <LineChart data={this.state.data3} options={options} />
-                    </div>
-                </div>
-                <div className="col-xl-3 col-sm-6 col-md-6">
-                    <div className="ms-card ms-widget has-graph-full-width ms-infographics-widget">
-                        <div className="ms-card-body media">
-                            <i className="cc PPC-alt" />
-                            <div className="media-body">
-                                <span>1 PPC = $1,100</span>
-                                <h2>Pointpay</h2>
-                            </div>
-                        </div>
-                        <LineChart data={this.state.data4} options={options} />
-                    </div>
-                </div>
-            </Fragment>
+                        )
+                    ) : null}
+                </Fragment>
         );
     }
 }
 
-export default Infographics;
+const imgStyle = {
+    borderRadius: '50%',
+    verticalAlign: 'middle',
+    marginRight: 10,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Infographics);

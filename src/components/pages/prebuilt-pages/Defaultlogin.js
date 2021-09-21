@@ -3,9 +3,11 @@ import MetaTags from "react-meta-tags";
 import Content from '../../sections/defaultlogin/Content';
 
 class Defaultlogin extends Component {
+
     constructor(props) {
         super(props);
     }
+
     render() {
         const {history} = this.props
         return (
@@ -25,6 +27,8 @@ class Defaultlogin extends Component {
             </Fragment>
         );
     }
+
+
 }
 
 export default Defaultlogin;

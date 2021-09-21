@@ -1,20 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import {BrowserRouter as Router} from 'react-router-dom'
-import {Route} from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
-import reducer from "./reducer";
-import {tokenMiddleware} from "./middleware";
-import thunkMiddleware from 'redux-thunk';
-import {composeWithDevTools} from "redux-devtools-extension";
-import {Provider} from "react-redux";
-import {
-    applyMiddleware,
-    createStore
-} from "redux";
-// import createHistory from 'history/createVrowserHistory'
 
+import {Provider} from "react-redux";
+import firebase from 'firebase/app';
+import 'firebase/analytics';
+import 'firebase/storage';
+import 'firebase/auth';
+import 'firebase/firestore'
 
 // Css
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
@@ -31,22 +25,30 @@ import './assets/vendors/iconic-fonts/cryptocoins/cryptocoins.css';
 import './assets/vendors/iconic-fonts/cryptocoins/cryptocoins-colors.css';
 import './assets/vendors/iconic-fonts/font-awesome/css/all.min.css';
 import './assets/css/style.css';
+import store, {persistor} from "./reducers/store";
+import {PersistGate} from "redux-persist/integration/react";
+import Preloader from "./components/layouts/Preloader";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyDZskxMTlRCEAJIa-qxWkcjXfK3lRk1fvI",
+    authDomain: "finanzapp-80c36.firebaseapp.com",
+    projectId: "finanzapp-80c36",
+    storageBucket: "finanzapp-80c36.appspot.com",
+    messagingSenderId: "407068919876",
+    appId: "1:407068919876:web:c367fae892579eab12d411",
+    measurementId: "G-MSMF8F1JSM"
+};
 
-const store = createStore(reducer, composeWithDevTools(
-    applyMiddleware(thunkMiddleware, tokenMiddleware),
-));
-
-// const history = createHistory();
+firebase.initializeApp(firebaseConfig);
+firebase.analytics();
 
 ReactDOM.render(
-      <Provider store={store}>
-          <App />
-      </Provider>,
-  document.getElementById('mystic')
+    <Provider store={store}>
+        <PersistGate loading={<Preloader/>} persistor={persistor}>
+            <App/>
+        </PersistGate>
+    </Provider>,
+    document.getElementById('mystic')
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

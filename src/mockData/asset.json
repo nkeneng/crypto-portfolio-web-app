@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Bitcoin",
+    "identifier": "btc",
+    "quantity": "Ut tincidunt tincidunt erat. Sed cursus turpis vitae tortor. Quisque malesuada placerat nisl. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+    "buyPrice": "https://picsum.photos/id/11/200/300",
+    "leverage": "https://picsum.photos/id/11/200/300",
+    "amountSpent": "https://picsum.photos/id/11/200/300",
+    "buyDate": "https://picsum.photos/id/11/200/300"
+  },
+  {
+    "name": "Aenean leo",
+    "identifier": "Aenean leo",
+    "quantity": "Ut tincidunt tincidunt erat. Sed cursus turpis vitae tortor. Quisque malesuada placerat nisl. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+    "buyPrice": "https://picsum.photos/id/11/200/300",
+    "leverage": "https://picsum.photos/id/11/200/300",
+    "amountSpent": "https://picsum.photos/id/11/200/300",
+    "buyDate": "https://picsum.photos/id/11/200/300"
+  },
+  {
+    "name": "Aenean leo",
+    "identifier": "Aenean leo",
+    "quantity": "Ut tincidunt tincidunt erat. Sed cursus turpis vitae tortor. Quisque malesuada placerat nisl. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+    "buyPrice": "https://picsum.photos/id/11/200/300",
+    "leverage": "https://picsum.photos/id/11/200/300",
+    "amountSpent": "https://picsum.photos/id/11/200/300",
+    "buyDate": "https://picsum.photos/id/11/200/300"
+  },
+  {
+    "name": "Aenean leo",
+    "identifier": "Aenean leo",
+    "quantity": "Ut tincidunt tincidunt erat. Sed cursus turpis vitae tortor. Quisque malesuada placerat nisl. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+    "buyPrice": "https://picsum.photos/id/11/200/300",
+    "leverage": "https://picsum.photos/id/11/200/300",
+    "amountSpent": "https://picsum.photos/id/11/200/300",
+    "buyDate": "https://picsum.photos/id/11/200/300"
+  }
+]

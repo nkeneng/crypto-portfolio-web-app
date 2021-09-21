@@ -1,7 +1,6 @@
 import superagentPromise from 'superagent-promise';
 import _superagent from 'superagent';
 
-
 const superagent = superagentPromise(_superagent, global.Promise);
 const API_ROOT = 'https://assets.wip/api';
 // * return response body
@@ -16,14 +15,8 @@ const tokenPlugin = secured => {
     }
   };
 };
-// let data = ((await fetch(`${API_ROOT}${url}`, {
-//   method: 'GET',
-//   headers: {
-//     'Content-Type': 'application/json'
-//   }
-// }).then(responseBody)));
-// console.log('hello from agent get')
-// console.log(data)
+
+
 export const requests = {
   get: (url, secured = false) => {
     return superagent.get(`${API_ROOT}${url}`).use(tokenPlugin(secured)).then(responseBody);

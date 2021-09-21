@@ -1,18 +1,25 @@
-import {USER_LOGIN_SUCCESS, USER_LOGOUT, USER_PROFILE_RECEIVED, USER_SET_ID} from "../actions/constants";
+import {
+  USER_LOGIN_SUCCESS,
+  USER_LOGOUT,
+  USER_PROFILE_RECEIVED,
+  USER_SET_ID
+} from "./action-type";
+
 
 export default (state = {
-  token: null,
   userId: null,
+  isFetchingUser:true,
   isAuthenticated: false,
   userData: null
 }, action) => {
+
   switch (action.type) {
     case USER_LOGIN_SUCCESS:
       return {
         ...state,
-        token: action.token,
         userId: action.userId,
-        isAuthenticated: true
+        isAuthenticated: true,
+        isFetchingUser: false
       };
     case USER_SET_ID:
       return {
@@ -23,14 +30,14 @@ export default (state = {
     case USER_PROFILE_RECEIVED:
       return {
         ...state,
-        userData: (state.userId === action.userId && state.userData === null)
-          ? action.userData : state.userData,
-        isAuthenticated: (state.userId === action.userId && state.userData === null)
+        userData: (state.userData === null || action.userData !== state.userData)
+            ? action.userData : state.userData,
+        isAuthenticated: (action.userData !== null),
+        isFetchingUser: false
       };
     case USER_LOGOUT:
       return {
         ...state,
-        token: null,
         userId: null,
         isAuthenticated: false,
         userData: null
