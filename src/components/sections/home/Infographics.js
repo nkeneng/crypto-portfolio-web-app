@@ -177,7 +177,7 @@ class Infographics extends Component {
                                         <img alt="" style={imgStyle} width="32" height="32"
                                              src={item.image}/>
                                         <div className="media-body">
-                                            <span>1 {item.symbol} = {formatter.format(item.usdPrice)}</span>
+                                            <span>1 {item.symbol.toUpperCase()} = {formatter.format(item.usdPrice)}</span>
                                             <h2>{item.name}</h2>
                                         </div>
                                     </div>

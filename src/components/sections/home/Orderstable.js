@@ -1,4 +1,4 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {Line as LineChart} from 'react-chartjs-2';
 import {Form, InputGroup, Modal} from "react-bootstrap";
@@ -8,9 +8,9 @@ import Fuse from 'fuse.js';
 import './app.css'
 import {saveAsset} from "../../Utility/assets/saveAsset";
 import {connect} from "react-redux";
-import {accountsListFetch, assetsListFetch, assetsListUpdate, coingeckoCryptosListFetch} from "../../../reducers/actions";
+import { assetsListUpdate, coingeckoCryptosListFetch} from "../../../reducers/actions";
 import {formatter} from "../../Utility/functions";
-import coingeckoCrypto from "../../../reducers/coingeckoCrypto";
+import {deleteAsset} from "../../Utility/assets/deleteAsset";
 
 var trend_1 = [1, 3, 5, 4, 3, 3, 4, 8, 5];
 var trend_2 = [3, 2, 5, 4, 8, 4, 5, 2, 3];
@@ -110,8 +110,8 @@ const optionsData = {
     }
 }
 
-function fuzzySearch(options) {
-    const fuse = new Fuse(options, {
+function fuzzySearch(options,data) {
+    const fuse = new Fuse(data, {
         keys: ['name', 'groupName', 'items.name'],
         threshold: 0.3,
     });
@@ -173,7 +173,6 @@ const Orderstable = (props) => {
         trendfive(),
     ])
     const [data, setData] = useState([]);
-    const [open, setOpen] = useState(true);
     const [show1, setShow1] = useState(false);
     const [newAsset, setNewAsset] = useState({
         buyDate: new Date().toDateInputValue(),
@@ -194,7 +193,6 @@ const Orderstable = (props) => {
         let temp = {...newAsset, owner: props.userData.id, account: props.account.id}
         handleClose()
         props.assetsListUpdate([...props.assets, temp])
-        console.log(temp);
         await saveAsset(temp)
     }
 
@@ -244,12 +242,14 @@ const Orderstable = (props) => {
                                 <th scope="col">Date</th>
                                 <th scope="col">Monnaie</th>
                                 <th scope="col">Quantite</th>
-                                <th scope="col">Prix d'Achat</th>
                                 <th scope="col">Montant depense</th>
-                                <th scope="col">Montant actuel</th>
+                                <th scope="col">Prix d'Achat</th>
+                                <th scope="col">Prix actuel</th>
+
                                 <th scope="col">Levier</th>
                                 <th scope="col">Evolution</th>
-                                <th scope="col">Prix actuel</th>
+                                <th scope="col">Montant actuel</th>
+
                                 <th scope="col">Performance(%)</th>
                                 <th scope="col">Performance($)</th>
                                 <th scope="col">Supprimer</th>
@@ -260,18 +260,25 @@ const Orderstable = (props) => {
                                 <tr key={key}>
                                     <td>{Intl.DateTimeFormat('de-DE').format(new Date(item.buyDate))}</td>
                                     <td className="ms-crypto-amount"><img style={{width: '20px'}} src={item.image} alt=""/>{item.name}</td>
-                                    <td>{item.quantity}</td>
-                                    <td>${item.unitPrice}</td>
+                                    <td>{item.quantity + ' ' + item.symbol.toUpperCase()}</td>
                                     <td>{formatter.format(item.spentAmount)}</td>
-                                    <td className="ms-text-info">{formatter.format(item.currentAmount)}</td>
+                                    <td>${item.unitPrice}</td>
+                                    <td>{formatter.format(item.usdPrice)}</td>
                                     <td>1</td>
                                     <td className="ms-trend"><LineChart data={options[2]} options={optionsData}/></td>
-                                    <td>{formatter.format(item.usdPrice)}</td>
-                                    <td className={item.performancePercentage > 0 ? 'text-success':'text-danger'}>{item.performancePercentage + '%'}</td>
-                                    <td className={item.performanceUsd > 0 ? 'text-success':'text-danger'}>{formatter.format(item.performanceUsd)}</td>
+                                    <td className="ms-text-info">{formatter.format(item.currentAmount)}</td>
+                                    <td className={item.performancePercentage > 0 ? 'text-success' : 'text-danger'}>{item.performancePercentage + '%'}</td>
+                                    <td className={item.performanceUsd > 0 ? 'text-success' : 'text-danger'}>{formatter.format(item.performanceUsd)}</td>
                                     <td><i className="text-danger flaticon-trash ms-delete-trigger" onClick={(e) => {
-                                        // e.stopPropagation();
-                                        // e.preventDefault();
+                                        console.log('deleted');
+                                        deleteAsset(item.id).then(res => {
+                                            let temp = props.assets.filter(function (obj) {
+                                                return obj.id !== item.id;
+                                            });
+                                            console.log("temp", temp);
+                                            console.log("assets", props.assets);
+                                            props.assetsListUpdate(temp)
+                                        })
                                     }}> </i></td>
                                 </tr>
                             )) : null}
@@ -309,7 +316,7 @@ const Orderstable = (props) => {
                             <Form.Row className={"has-icon"}>
                                 <label>Nom de l'actif</label>
                                 {data !== null ?
-                                    <SelectSearch filterOptions={fuzzySearch} autoComplete={"on"} onChange={handleChange} search={true} options={data} value="sv" name="assets"
+                                    <SelectSearch filterOptions={(options) => fuzzySearch(options,data)} autoComplete={"on"} onChange={handleChange} search={true} options={data.slice(0,20)} value="sv" name="assets"
                                                   placeholder="Choose your Asset"/> : null}
                             </Form.Row>
                             <Form.Row>

@@ -64,11 +64,29 @@ const Content = (props) => {
                 pnl24Percentage: 0,
             }
         }
-        for (let asset of currentAssets) {
-            if (assets.filter(item => item.id === asset.id).length <= 0) {
+        console.log("assets.length > currentAssets.length", assets.length, currentAssets.length);
+        if (assets.length < currentAssets.length || assets.length <= 0) {
+            for (let asset of currentAssets) {
+                if (assets.filter(item => item.id === asset.id).length <= 0) {
+                    newAccount = await setAccountValue(newAccount, asset)
+                }
+            }
+        } else {
+            setAssets([])
+            newAccount = {
+                ...currentAccount,
+                totalInvested: 0,
+                pnl: 0,
+                pnlPercentage: 0,
+                totalAmount: 0,
+                pnl24: 0,
+                pnl24Percentage: 0,
+            }
+            for (let asset of currentAssets) {
                 newAccount = await setAccountValue(newAccount, asset)
             }
         }
+
         setAccount(newAccount)
         setIsLoading(false)
     }
@@ -85,13 +103,14 @@ const Content = (props) => {
     }
 
     useEffect(() => {
-        console.log("fetching");
+        console.log("fetching", props.isFetchingAssets);
         // if the fetching is completed
         if (!props.isFetchingAssets) {
             // if the assets are not null
             if (props.assets !== null) {
                 // if there are new assets or it's loading for the first time
                 if ((currentAssets.length !== assets.length) || currentAssets.length <= 0) {
+                    console.log('changed');
                     setIsLoading(true)
                     setAccountData()
                 }
