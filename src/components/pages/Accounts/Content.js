@@ -15,10 +15,10 @@ const Content = (props) => {
     const [account, setAccount] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const CoinGeckoClient = new CoinGecko();
-
     const currentAccount = props.accounts.filter(item => item.name === props.accountname)[0]
     const currentAssets = props.assets.filter(item => item.account === currentAccount.id)
-
+    var ethPrice = 0
+    var btcPrice = 0
 
     const calculatePercentage = (spentAmount, performanceUsd) => {
         if (spentAmount <= 0) {
@@ -32,26 +32,40 @@ const Content = (props) => {
     const getCoin = async (item, CoinGeckoClient) => {
         let el = await CoinGeckoClient.coins.fetch(item.id)
         let usdPrice = el.data.market_data['current_price']['usd']
-        let spentAmount = item.unitPrice * item.quantity
+        let basePrice = el.data.market_data['current_price'][item.vsCurrency]
+        let spentAmount = (item.unitPrice * item.quantity)
         let currentAmount = usdPrice * item.quantity
-        let performanceUsd = currentAmount - spentAmount
+        let currentAmountBaseCurrency = 0
+
+        if (item.vsCurrency === 'btc') {
+            currentAmountBaseCurrency = basePrice * item.quantity
+        } else if (item.vsCurrency === 'eth') {
+            currentAmountBaseCurrency = basePrice * item.quantity
+        }
+        let performance = item.vsCurrency === 'usd' || item.vsCurrency === undefined ? currentAmount - spentAmount : currentAmountBaseCurrency - spentAmount
         let mergedAsset = {
             ...item,
             image: el.data.image['small'],
             usdPrice: usdPrice,
+            basePrice: basePrice,
             spentAmount: spentAmount,
             currentAmount: currentAmount,
-            performanceUsd: performanceUsd,
+            performanceUsd: (item.vsCurrency === 'btc' ? performance * btcPrice : item.vsCurrency === 'eth' ? performance * ethPrice : performance),
             pnl24: (el.data.market_data.price_change_percentage_24h * usdPrice) / 100,
-            pnl24Percentage: el.data.market_data.price_change_percentage_24h,
-            performancePercentage: calculatePercentage(spentAmount, performanceUsd)
+            pnl24Percentage: item.leverage ? (el.data.market_data.price_change_percentage_24h) * item.leverage : el.data.market_data.price_change_percentage_24h,
+            performancePercentage: item.leverage ? calculatePercentage(spentAmount, performance) * item.leverage : calculatePercentage(spentAmount, performance)
         }
-
         setAssets(assets => [...assets, mergedAsset])
         return mergedAsset
     }
 
     const setAccountData = async () => {
+        // fetch btc and eth price
+        let btcData = await CoinGeckoClient.coins.fetch('bitcoin')
+        btcPrice = btcData.data.market_data['current_price']['usd']
+        let ethData = await CoinGeckoClient.coins.fetch('ethereum')
+        ethPrice = ethData.data.market_data['current_price']['usd']
+
         let newAccount = account
         if (newAccount == null) {
             newAccount = {
@@ -86,7 +100,6 @@ const Content = (props) => {
                 newAccount = await setAccountValue(newAccount, asset)
             }
         }
-
         setAccount(newAccount)
         setIsLoading(false)
     }
