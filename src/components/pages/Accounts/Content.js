@@ -12,6 +12,7 @@ import Preloader from "../../layouts/Preloader";
 const Content = (props) => {
 
     const [assets, setAssets] = useState([])
+
     const [account, setAccount] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const CoinGeckoClient = new CoinGecko();
@@ -60,6 +61,7 @@ const Content = (props) => {
     }
 
     const setAccountData = async () => {
+
         // fetch btc and eth price
         let btcData = await CoinGeckoClient.coins.fetch('bitcoin')
         btcPrice = btcData.data.market_data['current_price']['usd']

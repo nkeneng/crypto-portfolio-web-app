@@ -140,8 +140,8 @@ function renderFriend(props, option, snapshot, className) {
 
     return (
         <button {...props} className={className} type="button">
-            <span><img alt="" style={imgStyle} width="32" height="32"
-                       src={"https://s3.us-east-2.amazonaws.com/nomics-api/static/images/currencies/" + option.symbol + ".svg"}/><span>{option.name}</span></span>
+            <span><img alt="" style={imgStyle} width="22" height="22"
+                       src={option.image}/><span>{option.name}</span></span>
         </button>
     );
 }
@@ -179,13 +179,17 @@ const Orderstable = (props) => {
         trendfive(),
     ])
     const [data, setData] = useState([]);
+    const [globalList, setGlobalList] = useState([]);
     const [vsCurrencies, setVsCurrencies] = useState([
-        {name: "BTC", value: 'btc'},
-        {name: "ETH", value: 'eth'},
-        {name: "USD", value: 'usd'},
-        {name: "EUR", value: 'eur'},
+        {name: "BTC", value: 'btc', id: "bitcoin"},
+        {name: "ETH", value: 'eth', id: "ethereum"},
+        {name: "USD", value: 'usd', id: "dollar"},
+        {name: "EUR", value: 'eur', id: "euro"},
     ]);
     const [show1, setShow1] = useState(false);
+    const [cryptoBased, setCryptoBased] = useState(false);
+    const [cryproBasedPrice, setCryproBasedPrice] = useState(0);
+    const [baseCurrency, setBaseCurrency] = useState('');
     const [currentAssetImage, setCurrentAssetImage] = useState('');
     const [newAsset, setNewAsset] = useState({
         buyDate: new Date().toDateInputValue(),
@@ -198,12 +202,15 @@ const Orderstable = (props) => {
         leverage: 1,
         description: '',
         vsCurrency: '',
+        vsCurrencyPrice: 0,
+        cryproBasedPrice: 0,
         image: ''
     });
-
+    const CoinGeckoClient = new CoinGecko();
 
     const handleSubmit = async (event) => {
         console.log('sent');
+        event.preventDefault();
         event.preventDefault();
         console.log(props.account);
         let temp = {...newAsset, owner: props.userData.id, account: props.account.id}
@@ -211,12 +218,33 @@ const Orderstable = (props) => {
         props.assetsListUpdate([...props.assets, temp])
         await saveAsset(temp)
     }
-
+    const fetchData = async () => {
+        let coins = await CoinGeckoClient.coins.markets({
+            vs_currency: 'usd',
+            order: 'market_cap_desc',
+            per_page: 100
+        })
+        // console.log(coins.data);
+        return coins.data
+    }
     useEffect(() => {
         if (props.coingeckoCrypto) {
             let temparrray = []
+            let temparrrayGlobal = []
+            fetchData().then(res => {
+                res.forEach(item => {
+                    temparrray.push(
+                        {
+                            name: item.name,
+                            value: item.id,
+                            symbol: item.symbol,
+                            image: item.image,
+                        }
+                    )
+                })
+            })
             props.coingeckoCrypto.forEach(item => {
-                temparrray.push(
+                temparrrayGlobal.push(
                     {
                         name: item.name,
                         value: item.id,
@@ -225,6 +253,7 @@ const Orderstable = (props) => {
                 )
             })
             setData(temparrray)
+            setGlobalList(temparrrayGlobal)
         }
     }, [props.coingeckoCrypto]);
 
@@ -242,9 +271,22 @@ const Orderstable = (props) => {
         setNewAsset(temp)
     };
 
+
     const handleChangeCurrency = (...args) => {
         var temp = newAsset
         temp.vsCurrency = args[0]
+        if (args[0] === 'eth' || args[0] === 'btc') {
+            setBaseCurrency(args[0])
+            setCryptoBased(true)
+            let historicPrice = 0
+            CoinGeckoClient.coins.fetchHistory(args[1].id, {
+                date: Intl.DateTimeFormat('fr-FR').format(new Date(newAsset.buyDate)).replace(/\//g, "-")
+            }).then(res => {
+                historicPrice = res.data.market_data.current_price.usd
+                setCryproBasedPrice(historicPrice)
+                temp.cryproBasedPrice = historicPrice
+            })
+        } else setCryptoBased(false)
         setNewAsset(temp)
     };
 
@@ -270,6 +312,8 @@ const Orderstable = (props) => {
                                 <th scope="col">Monnaie</th>
                                 <th scope="col">Quantite</th>
                                 <th scope="col">Montant depense</th>
+                                <th scope="col">Montant depense($)</th>
+
                                 <th scope="col">Prix d'Achat</th>
                                 <th scope="col">Prix actuel</th>
 
@@ -289,13 +333,14 @@ const Orderstable = (props) => {
                                     <td className="ms-crypto-amount"><img style={{width: '20px'}} src={item.image} alt=""/>{item.name}</td>
                                     <td>{item.quantity + ' ' + item.symbol.toUpperCase()}</td>
                                     <td>{item.vsCurrency === 'usd' || item.vsCurrency === undefined ? formatter.format(item.spentAmount) : item.spentAmount + ' ' + item.vsCurrency.toUpperCase()}</td>
-                                    <td>{item.vsCurrency === 'usd' || item.vsCurrency === undefined ? formatter.format(item.unitPrice) : item.unitPrice + ' ' + item.vsCurrency.toUpperCase() }</td>
-                                    <td>{ item.vsCurrency === 'usd' || item.vsCurrency === undefined ? formatter.format(item.usdPrice) : item.basePrice + ' ' + item.vsCurrency.toUpperCase()}</td>
+                                    <td>{ formatter.format(item.spentAmount*item.cryproBasedPrice)}</td>
+                                    <td>{item.vsCurrency === 'usd' || item.vsCurrency === undefined ? formatter.format(item.unitPrice) : item.unitPrice + ' ' + item.vsCurrency.toUpperCase()}</td>
+                                    <td>{item.vsCurrency === 'usd' || item.vsCurrency === undefined ? formatter.format(item.usdPrice) : item.basePrice + ' ' + item.vsCurrency.toUpperCase()}</td>
                                     <td>{item.leverage ?? 1}</td>
                                     <td className="ms-trend"><LineChart data={options[2]} options={optionsData}/></td>
                                     <td className="ms-text-info">{formatter.format(item.currentAmount)}</td>
                                     <td className={item.performancePercentage > 0 ? 'text-success' : 'text-danger'}>{item.performancePercentage + '%'}</td>
-                                    <td className={item.performanceUsd > 0 ? 'text-success' : 'text-danger'}>{ formatter.format(item.performanceUsd) }</td>
+                                    <td className={item.performanceUsd > 0 ? 'text-success' : 'text-danger'}>{formatter.format(item.performanceUsd)}</td>
                                     <td><i className="text-danger flaticon-trash ms-delete-trigger" onClick={(e) => {
                                         if (window.confirm('Etes vous sur de vouloir supprimer cet actif ?')) {
                                             console.log('deleted');
@@ -344,21 +389,29 @@ const Orderstable = (props) => {
                             </Form.Row>
                             <Form.Row className={"has-icon mb-4"}>
                                 <label>Nom de l'actif</label>
-                                {/*renderOption={renderFriend}*/}
                                 {data !== null ?
-                                    <SelectSearch filterOptions={(options) => fuzzySearch(options, data)} autoComplete={"on"} onChange={handleChange} search={true} options={data.slice(0, 20)}
+                                    <SelectSearch renderOption={renderFriend} filterOptions={(options) => fuzzySearch(options, globalList)} autoComplete={"on"} onChange={handleChange} search={true}
+                                                  options={data.slice(0, 50)}
                                                   value="sv" name="assets"
                                                   placeholder="Choose your Asset"/> : null}
                             </Form.Row>
-                            <Form.Row className={"has-icon"}>
+                            <Form.Row className={"has-icon mb-4"}>
                                 <label>Actif de base</label>
-                                {/*renderOption={renderFriend}*/}
                                 {vsCurrencies !== null ?
                                     <SelectSearch filterOptions={(options) => fuzzySearch(options, vsCurrencies)} autoComplete={"on"} onChange={handleChangeCurrency} search={true}
                                                   options={vsCurrencies}
                                                   value="sv" name="vscurrencies"
                                                   placeholder="Choose the base Asset"/> : null}
                             </Form.Row>
+                            {cryptoBased ? <Form.Row className={"mb-2"}>
+                                <label>Prix par {baseCurrency.toUpperCase()}</label>
+                                <input value={cryproBasedPrice} type="number" placeholder="0.00" className="form-control" name="basePrice"
+                                       onChange={e => {
+                                           setCryproBasedPrice(parseInt(e.target.value))
+                                           setNewAsset(prev => ({...prev, cryproBasedPrice: parseInt(e.target.value)}))
+                                       }}
+                                />
+                            </Form.Row> : null}
                             <Form.Row>
                                 <div className="col-md-6">
                                     <div className="ms-form-group has-icon">
